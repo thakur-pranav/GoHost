@@ -36,16 +36,26 @@ app.use(express.static(path.join(__dirname, "/public")));
 const sessionOptions = {
   secret: "mysupersecretcode",
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 1 week
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    httpOnly: true,
+  },
 };
-
-app.use(session(sessionOptions));
-app.use(flash());
 
 app.get("/", (req, res) => {
   res.send("Hi, I am root");
 });
 
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  console.log(res.locals.success);
+  next(); 
+});
 
 app.use("/listings", listings);
 app.use("/listings/:id/reviews", reviews);
