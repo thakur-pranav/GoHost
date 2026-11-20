@@ -4,12 +4,16 @@ GoHost is a small Express.js application for managing listings and reviews. It u
 
 ## Features
 
-- Create, view, edit, and delete listings
-- Add reviews to a listing
+- Create, view, edit, and delete listings, with image uploads (Cloudinary, or local disk in development)
+- Sign up, log in and log out with Passport; new users are logged in right after sign-up
+- Only a listing's owner can edit or delete it, and only a review's author can delete it
+- Star-rated reviews showing who wrote them
+- Search by title, location or country, filter by category, and an "after taxes" price toggle
+- Map of each listing's location (Mapbox)
+- Bookings: guests reserve dates on a listing, see their trips, and cancel; hosts see and can cancel bookings on their listings
+- Distributed locks on bookings, so two people can never book the same listing for the same night (see below)
 - Server-side validation with Joi
-- Mongoose models for listings and reviews
-- EJS views with layout support via `ejs-mate`
-- Flash messaging and session support
+- Sessions stored in MongoDB, so logins survive server restarts
 
 ## Tech Stack
 
@@ -38,30 +42,59 @@ GoHost is a small Express.js application for managing listings and reviews. It u
 
 3. Start MongoDB locally
 
-4. Run the app:
+4. Copy `.env.example` to `.env` and fill in any keys you have (see Configuration)
+
+5. Run the app:
    ```bash
-   node app.js
+   npm run dev    # with nodemon, restarts when you save
+   npm start      # plain node
    ```
 
-5. Open the app in your browser:
+6. Open the app in your browser:
    ```
    http://localhost:8080
    ```
 
 ## Configuration
 
-By default, the app connects to MongoDB at:
+Copy `.env.example` to `.env`. Every value is optional for local development:
 
-```js
-mongodb://127.0.0.1:27017/GoHost
+| Variable | Purpose | Default if unset |
+|---|---|---|
+| `ATLASDB_URL` | MongoDB connection string | `mongodb://127.0.0.1:27017/GoHost` |
+| `SECRET` | Session secret | a development secret |
+| `PORT` | Port to listen on | `8080` |
+| `CLOUD_NAME`, `CLOUD_API_KEY`, `CLOUD_API_SECRET` | Cloudinary image uploads | uploads saved to `public/uploads` |
+| `MAP_TOKEN` | Mapbox geocoding and map | no map shown |
+
+## Seeding sample data
+
+Sign up for an account in the app first, then run:
+
+```bash
+npm run seed -- <your-username>
 ```
 
-If needed, update the `MONGO_URL` value in `app.js` to point to your MongoDB instance.
+This **deletes all listings** and inserts the sample listings, owned by that user.
+
+## Adding map coordinates to existing listings
+
+Listings get coordinates automatically when created or edited (with `MAP_TOKEN` set). For listings created before that, run once:
+
+```bash
+npm run geocode
+```
+
+This only fills in missing coordinates; it doesn't change anything else.
 
 ## Routes
 
-- `GET /` — root route
-- `GET /listings` — view all listings
+- `GET /` — home page
+- `GET /signup`, `POST /signup` — sign up
+- `GET /login`, `POST /login` — log in
+- `GET /logout` — log out
+- `GET /privacy`, `GET /terms` — info pages
+- `GET /listings` — view all listings (`?q=` to search, `?category=` to filter)
 - `GET /listings/new` — create new listing page
 - `POST /listings` — create listing
 - `GET /listings/:id` — view single listing
@@ -70,6 +103,19 @@ If needed, update the `MONGO_URL` value in `app.js` to point to your MongoDB ins
 - `DELETE /listings/:id` — delete listing
 - `POST /listings/:id/reviews` — create a review
 - `DELETE /listings/:id/reviews/:reviewId` — delete a review
+- `POST /listings/:id/bookings` — book a listing
+- `GET /bookings` — my trips and bookings on my listings
+- `DELETE /bookings/:bookingId` — cancel a booking
+
+## Booking locks
+
+When someone books a listing, the app first acquires a lock for **that listing on each night of the stay** (key `booking:<listingId>:<YYYY-MM-DD>`). While it holds those locks it checks that the dates are still free and saves the booking, then releases them. Anyone else trying to book any of those nights on that listing has to wait, so double bookings can't happen.
+
+- Locks are documents in the MongoDB `locks` collection, keyed by `_id`, so they work across multiple app servers sharing the same database (`utils/lock.js`).
+- Taking a lock is a single atomic `findOneAndUpdate` upsert, so two servers can't both get it.
+- It's all-or-nothing: if any night is locked, the app releases what it took and retries a few times with backoff. If the dates are still locked after that, the guest is asked to try again.
+- Each lock expires after 30 seconds, so a server that crashes mid-booking can't block those dates forever. Before saving, the app checks it still holds its locks.
+- Stays are limited to 30 nights and up to 365 days ahead.
 
 ## Project Structure
 
@@ -79,11 +125,10 @@ If needed, update the `MONGO_URL` value in `app.js` to point to your MongoDB ins
 - `models/` — Mongoose schemas for listings and reviews
 - `views/` — EJS templates and layouts
 - `public/` — static CSS and client-side JavaScript
-- `utils/` — custom error and async wrapper utilities
+- `utils/` — custom error, async wrapper, geocoding, category, date and lock helpers
+- `middleware.js` — login, ownership and validation middleware
+- `cloudConfig.js` — image upload storage
 
 ## Notes
 
-- The root route currently returns a simple text response.
 - Error handling is provided in `utils/ExpressError.js` and the `error.ejs` template.
-
-

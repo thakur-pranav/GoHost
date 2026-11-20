@@ -10,8 +10,12 @@ const reviewSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now()
-    }
+        default: Date.now // pass the function so each review gets its own timestamp
+    },
+    author: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+    },
 });
 
 module.exports = mongoose.model("Review", reviewSchema);

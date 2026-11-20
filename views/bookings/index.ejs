@@ -1,0 +1,77 @@
+<% layout("/layouts/boilerplate") %>
+<%
+  const fmt = (d) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  const inr = (n) => "₹ " + (n || 0).toLocaleString("en-IN");
+  const canCancel = (b) => b.status === "confirmed" && b.checkOut > today;
+  const statusOf = (b) => b.status === "cancelled" ? "Cancelled" : (b.checkOut <= today ? "Completed" : "Confirmed");
+%>
+
+<div class="row mt-3">
+  <div class="col-md-10 offset-md-1">
+    <h3>My Trips</h3>
+    <% if(trips.length === 0) { %>
+      <p class="text-muted">You haven't booked anything yet. <a href="/listings">Find a place to stay</a>.</p>
+    <% } %>
+
+    <% for(let b of trips) { %>
+      <div class="card booking-row mb-3">
+        <div class="row g-0 align-items-center">
+          <% if(b.listing) { %>
+            <div class="col-sm-3">
+              <a href="/listings/<%= b.listing._id %>">
+                <img src="<%= b.listing.image && b.listing.image.url %>" class="booking-thumb" alt="listing image">
+              </a>
+            </div>
+          <% } %>
+          <div class="col-sm-6 p-3">
+            <h5 class="mb-1">
+              <% if(b.listing) { %>
+                <a href="/listings/<%= b.listing._id %>" class="listing-link text-dark"><%= b.listing.title %></a>
+              <% } else { %>
+                Listing removed
+              <% } %>
+            </h5>
+            <p class="mb-1"><%= fmt(b.checkIn) %> &rarr; <%= fmt(b.checkOut) %> &middot; <%= b.nights %> night<%= b.nights > 1 ? "s" : "" %> &middot; <%= b.guests %> guest<%= b.guests > 1 ? "s" : "" %></p>
+            <p class="mb-0">Total <b><%= inr(b.total) %></b> <span class="text-muted">(incl. <%= inr(b.tax) %> GST)</span></p>
+          </div>
+          <div class="col-sm-3 p-3 text-sm-end">
+            <span class="badge status-<%= statusOf(b).toLowerCase() %>"><%= statusOf(b) %></span>
+            <% if(canCancel(b)) { %>
+              <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2"
+                    onsubmit="return confirm('Cancel this booking?')">
+                <button class="btn btn-sm btn-outline-dark">Cancel</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% } %>
+
+    <% if(hosting.length > 0) { %>
+      <h3 class="mt-5">Bookings on my listings</h3>
+      <% for(let b of hosting) { %>
+        <div class="card booking-row mb-3 p-3">
+          <div class="d-flex justify-content-between flex-wrap gap-2">
+            <div>
+              <h6 class="mb-1"><%= b.listing ? b.listing.title : "Listing removed" %></h6>
+              <p class="mb-0">
+                @<%= b.guest ? b.guest.username : "deleted user" %> &middot;
+                <%= fmt(b.checkIn) %> &rarr; <%= fmt(b.checkOut) %> &middot;
+                <%= b.guests %> guest<%= b.guests > 1 ? "s" : "" %> &middot; <%= inr(b.total) %>
+              </p>
+            </div>
+            <div class="text-end">
+              <span class="badge status-<%= statusOf(b).toLowerCase() %>"><%= statusOf(b) %></span>
+              <% if(canCancel(b)) { %>
+                <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2"
+                      onsubmit="return confirm('Cancel this guest\'s booking?')">
+                  <button class="btn btn-sm btn-outline-dark">Cancel</button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
