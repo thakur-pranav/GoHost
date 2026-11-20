@@ -18,3 +18,6 @@ Thumbs.db
 
 # Local image uploads
 public/uploads/
+
+# Local notes for Claude Code
+CLAUDE.md
