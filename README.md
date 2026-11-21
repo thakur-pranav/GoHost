@@ -1,6 +1,8 @@
 # GoHost
 
-GoHost is a small Express.js application for managing listings and reviews. It uses MongoDB for storage, EJS for views, and supports sessions, flash messages, and method override for editing and deleting resources.
+GoHost is an Express.js application for listing places to stay, booking them and leaving reviews. It uses MongoDB for storage, EJS for views, and supports sessions, flash messages, and method override for editing and deleting resources.
+
+**Live demo:** https://gohost.byteforgelabs.tech (Render free plan with MongoDB Atlas, Cloudinary and Mapbox; the first load after a quiet period can take a few seconds)
 
 ## Features
 
