@@ -261,3 +261,15 @@ body {
 .status-cancelled {
     background-color: #dc3545;
 }
+
+/* Listing card photos (was an inline style; the CSP blocks inline code) */
+.listing-card .card-img-top {
+    height: 20rem;
+}
+
+/* Log Out is a form button (POST) styled like the other navbar links */
+.logout-btn {
+    text-decoration: none;
+    border: 0;
+    color: inherit;
+}

@@ -3,7 +3,7 @@
     <div class="row mt-3">
         <div class="col-md-8 offset-md-2">
             <h3>Create a New Listing</h3>
-            <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+            <form method="POST" action="/listings?_csrf=<%= csrfToken() %>" novalidate class="needs-validation" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
                     <input name="listing[title]" id="title" placeholder="Add a catchy title" type="text" class="form-control" required>

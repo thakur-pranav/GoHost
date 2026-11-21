@@ -13,12 +13,15 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const localStrategy = require("passport-local");
 const User = require("./models/user.js");
+const { securityHeaders, csrfProtection, csrfLocals } = require("./security.js");
 
 const pageRouter = require("./routes/pages.js");
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const bookingRouter = require("./routes/booking.js");
+
+app.use(securityHeaders);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -77,6 +80,9 @@ app.use((req, res, next) => {
   res.locals.q = "";
   next();
 });
+app.use(csrfLocals);
+// After the locals above, so the error page can still render the navbar.
+app.use(csrfProtection);
 
 app.use("/", pageRouter);
 app.use("/listings", listingRouter);
@@ -91,6 +97,8 @@ app.all(/.*/, (req, res, next) => {
 app.use((err, req, res, next) => {
   if (err instanceof mongoose.Error.CastError) {
     err = new ExpressError(404, "Page Not Found!");
+  } else if (err.code === "EBADCSRFTOKEN") {
+    err = new ExpressError(403, "This form has expired. Please go back, refresh the page and try again.");
   } else if (err instanceof multer.MulterError || /images are allowed/.test(err.message)) {
     err.statusCode = 400;
   }

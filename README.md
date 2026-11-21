@@ -119,6 +119,14 @@ When someone books a listing, the app first acquires a lock for **that listing o
 - Each lock expires after 30 seconds, so a server that crashes mid-booking can't block those dates forever. Before saving, the app checks it still holds its locks.
 - Stays are limited to 30 nights and up to 365 days ahead.
 
+## Security
+
+- **Security headers** with [helmet](https://helmetjs.github.io/), including a Content Security Policy that only allows scripts, styles, images and map data from known sources (Bootstrap, Font Awesome, Google Fonts, Mapbox, Cloudinary, Unsplash). The pages have no inline scripts, so injected code can't run.
+- **CSRF protection** with [csrf-sync](https://github.com/Psifi-Solutions/csrf-sync): every form that changes data carries a secret token tied to the user's session, so other websites can't submit forms on a logged-in user's behalf. Log out is a POST form for the same reason.
+- **Rate limiting** with [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit): 10 failed logins per IP per 15 minutes, and 10 sign-up attempts per IP per hour.
+- **Sessions**: HTTP-only, SameSite=Lax cookies, HTTPS-only in production; the app refuses to start in production without a `SECRET`.
+- **Input checks**: Joi validation on every form, and login/sign-up reject non-text fields to block MongoDB query injection.
+
 ## Project Structure
 
 GoHost follows the MVC pattern: models hold the data, views render pages, and controllers hold the logic for each request.
@@ -126,6 +134,7 @@ GoHost follows the MVC pattern: models hold the data, views render pages, and co
 - `server.js` — entry point: connects to MongoDB and starts the server
 - `app.js` — builds the Express app (sessions, login, routes, error handling) and exports it, so tests can load it without opening a port
 - `config.js` — settings read from the environment
+- `security.js` — security headers (CSP), CSRF protection and rate limits
 - `models/` — Mongoose schemas for listings, reviews, users and bookings
 - `views/` — EJS templates and layouts
 - `controllers/` — request handlers for listings, reviews, users, bookings and static pages

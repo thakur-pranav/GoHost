@@ -57,7 +57,7 @@ module.exports.login = (req, res) => {
   res.redirect(res.locals.redirectUrl || "/listings");
 };
 
-// GET /logout
+// POST /logout
 module.exports.logout = (req, res, next) => {
   req.logout((err) => {
     if (err) {

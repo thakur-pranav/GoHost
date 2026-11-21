@@ -28,7 +28,10 @@
                 <% } else { %>
                     <a class="nav-link" href="/bookings">Bookings</a>
                     <span class="nav-link disabled">@<%= currUser.username %></span>
-                    <a class="nav-link" href="/logout"><b>Log Out</b></a>
+                    <form method="POST" action="/logout" class="d-inline">
+                        <%- csrfField() %>
+                        <button class="nav-link btn btn-link logout-btn"><b>Log Out</b></button>
+                    </form>
                 <% } %>
             </div>
         </div>

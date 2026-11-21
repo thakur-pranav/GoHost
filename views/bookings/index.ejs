@@ -37,8 +37,8 @@
           <div class="col-sm-3 p-3 text-sm-end">
             <span class="badge status-<%= statusOf(b).toLowerCase() %>"><%= statusOf(b) %></span>
             <% if(canCancel(b)) { %>
-              <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2"
-                    onsubmit="return confirm('Cancel this booking?')">
+              <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2" data-confirm="Cancel this booking?">
+<%- csrfField() %>
                 <button class="btn btn-sm btn-outline-dark">Cancel</button>
               </form>
             <% } %>
@@ -63,8 +63,8 @@
             <div class="text-end">
               <span class="badge status-<%= statusOf(b).toLowerCase() %>"><%= statusOf(b) %></span>
               <% if(canCancel(b)) { %>
-                <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2"
-                      onsubmit="return confirm('Cancel this guest\'s booking?')">
+                <form method="POST" action="/bookings/<%= b._id %>?_method=DELETE" class="mt-2" data-confirm="Cancel this guest's booking?">
+<%- csrfField() %>
                   <button class="btn btn-sm btn-outline-dark">Cancel</button>
                 </form>
               <% } %>

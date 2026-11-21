@@ -19,6 +19,7 @@
       <div class="btns col-md-6 offset-md-3 mb-3">
         <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn">Edit</a>
         <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+<%- csrfField() %>
           <button class="btn btn-dark">Delete</button>
         </form>
       </div>
@@ -35,6 +36,7 @@
         <% } else { %>
           <form action="/listings/<%= listing._id %>/bookings" method="POST" novalidate class="needs-validation mt-3" id="booking-form"
                 data-price="<%= listing.price || 0 %>">
+<%- csrfField() %>
             <div class="row g-2">
               <div class="col-6">
                 <label for="checkIn" class="form-label">Check-in</label>
@@ -73,6 +75,7 @@
         <hr>
         <h4>Leave a Review</h4>
         <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate class="needs-validation">
+<%- csrfField() %>
           <div class="mb-3 mt-3">
             <label class="form-label">Rating</label>
             <fieldset class="starability-slot">
@@ -116,6 +119,7 @@
               </div>
               <% if(currUser && review.author && review.author._id.equals(currUser._id)) { %>
                 <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" class="mb-3" method="POST">
+<%- csrfField() %>
                   <button class="btn btn-sm btn-dark">Delete</button>
                 </form>
               <% } %>

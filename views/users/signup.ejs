@@ -4,6 +4,7 @@
         <h1 class="col-md-6 offset-md-3">Sign up on GoHost</h1>
         <div class="col-md-6 offset-md-3">
             <form action="/signup" method="POST" class="needs-validation" novalidate>
+<%- csrfField() %>
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input name="username" id="username" type="text" class="form-control" autocomplete="username" required />
