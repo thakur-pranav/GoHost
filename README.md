@@ -121,11 +121,16 @@ When someone books a listing, the app first acquires a lock for **that listing o
 
 ## Project Structure
 
-- `app.js` — main server file
-- `package.json` — dependencies and metadata
-- `routes/` — route handlers for listings and reviews
-- `models/` — Mongoose schemas for listings and reviews
+GoHost follows the MVC pattern: models hold the data, views render pages, and controllers hold the logic for each request.
+
+- `server.js` — entry point: connects to MongoDB and starts the server
+- `app.js` — builds the Express app (sessions, login, routes, error handling) and exports it, so tests can load it without opening a port
+- `config.js` — settings read from the environment
+- `models/` — Mongoose schemas for listings, reviews, users and bookings
 - `views/` — EJS templates and layouts
+- `controllers/` — request handlers for listings, reviews, users, bookings and static pages
+- `routes/` — URL definitions: each route lists its middleware and points to a controller
+- `package.json` — dependencies and scripts
 - `public/` — static CSS and client-side JavaScript
 - `utils/` — custom error, async wrapper, geocoding, category, date and lock helpers
 - `middleware.js` — login, ownership and validation middleware

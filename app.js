@@ -1,7 +1,4 @@
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config({ quiet: true });
-}
-
+const { dbUrl, sessionSecret, isProduction } = require("./config.js");
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -17,26 +14,11 @@ const passport = require("passport");
 const localStrategy = require("passport-local");
 const User = require("./models/user.js");
 
+const pageRouter = require("./routes/pages.js");
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const bookingRouter = require("./routes/booking.js");
-
-const dbUrl = process.env.ATLASDB_URL || "mongodb://127.0.0.1:27017/GoHost";
-const sessionSecret = process.env.SECRET || "mysupersecretcode";
-const port = process.env.PORT || 8080;
-
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-async function main() {
-  await mongoose.connect(dbUrl);
-}
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -67,11 +49,11 @@ const sessionOptions = {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     httpOnly: true,
     sameSite: "lax", // browsers won't send the cookie on form posts from other sites
-    secure: process.env.NODE_ENV === "production", // HTTPS-only once deployed
+    secure: isProduction, // HTTPS-only once deployed
   },
 };
 
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   app.set("trust proxy", 1); // hosts like Render terminate HTTPS at a proxy
 }
 
@@ -96,18 +78,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", (req, res) => {
-  res.render("home.ejs");
-});
-
-app.get("/privacy", (req, res) => {
-  res.render("privacy.ejs");
-});
-
-app.get("/terms", (req, res) => {
-  res.render("terms.ejs");
-});
-
+app.use("/", pageRouter);
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
@@ -128,6 +99,6 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error.ejs", { err: { statusCode, message } });
 });
 
-app.listen(port, () => {
-  console.log(`server is listening to port ${port}`);
-});
+// server.js connects to the database and starts listening; tests can
+// require this file and use the app without opening a port.
+module.exports = app;
